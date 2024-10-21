@@ -49,8 +49,7 @@ class RNN(nn.Module):
   
   def forward(self, input):
     hidden = self.rnn_layer.init_hidden(input.size()[0])
-    input["ids"] = input["ids"].long()
-    embedded = self.token_embedding(input["ids"])
+    embedded = self.token_embedding(input)
     outputs = self.rnn_layer(embedded, hidden)
     outputs = self.softmax(outputs)
     return outputs

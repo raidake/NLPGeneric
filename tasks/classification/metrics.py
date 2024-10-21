@@ -97,9 +97,7 @@ MODULE_NAME = {
 def build(metric_name, cfg):
     if metric_name not in SUPPORTED_METRICS:
         raise ValueError(f"Unsupported metric: {metric_name}")
-    print(f"Building metric: {metric_name}")
     module = MODULE_NAME[metric_name]
-    print(f"Module: {module}")
     return module.from_config(cfg)
 
 __all__ = [

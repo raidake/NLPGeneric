@@ -128,7 +128,7 @@ class Trainer:
     data_iter = iter(self.train_loader)
     for step_id in tqdm.tqdm(range(self.args.training_steps)):
       try:
-        input, label = next(data_iter)
+        input, length, label = next(data_iter)
       except StopIteration:
         data_iter = iter(self.train_loader)
         input, length, label = next(data_iter)

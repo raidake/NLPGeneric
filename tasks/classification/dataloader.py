@@ -27,9 +27,10 @@ class ClassificationDataset(torch.utils.data.Dataset):
     item = self.dataset[idx]
     text = item["text"]
     label = item["label"]
-    tokenized = self.tokenizer.tokenize(text)
-    length = len(tokenized)
-    return tokenized, length, label
+    ids = self.tokenizer.tokenize(text)["ids"]
+    length = len(ids)
+    ids = torch.tensor(ids)
+    return ids, torch.tensor(length), label
 
 def get_dataloaders(
   tokenizer: BaseTokenizer,
@@ -54,13 +55,13 @@ def get_dataloaders(
     validation_dataset = ClassificationDataset(dataset["validation"], tokenizer)
     test_dataset = ClassificationDataset(dataset["test"], tokenizer)
     # partial function to be used in DataLoader
-    def padding_fn(tokenizer, batch):
-      (xx, yy) = zip(*batch)
+    def padding_fn(batch):
+      (xx, lengths, yy) = zip(*batch)
       xx_pad = pad_sequence(xx, batch_first=True, padding_value=tokenizer.pad_id)
-      return xx_pad, torch
-    train_loader = DataLoader(train_dataset, batch_size=training_bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
-    val_loader   = DataLoader(validation_dataset, batch_size=val_bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
-    test_loader  = DataLoader(test_dataset, batch_size=val_bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
+      return xx_pad, lengths, torch.tensor(yy)
+    train_loader = DataLoader(train_dataset, batch_size=training_bs, shuffle=True, collate_fn=padding_fn)
+    val_loader   = DataLoader(validation_dataset, batch_size=val_bs, shuffle=True, collate_fn=padding_fn)
+    test_loader  = DataLoader(test_dataset, batch_size=val_bs, shuffle=True, collate_fn=padding_fn)
   else:
     raise NotImplementedError(f"Task {training_args.task} not implemented")
   
