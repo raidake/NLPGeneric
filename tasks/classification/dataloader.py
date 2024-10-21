@@ -30,7 +30,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
     ids = self.tokenizer.tokenize(text)["ids"]
     length = len(ids)
     ids = torch.tensor(ids)
-    return ids, torch.tensor(length), label
+    return ids, length, label
 
 def get_dataloaders(
   tokenizer: BaseTokenizer,
@@ -58,7 +58,7 @@ def get_dataloaders(
     def padding_fn(batch):
       (xx, lengths, yy) = zip(*batch)
       xx_pad = pad_sequence(xx, batch_first=True, padding_value=tokenizer.pad_id)
-      return xx_pad, lengths, torch.tensor(yy)
+      return xx_pad, torch.tensor(lengths), torch.tensor(yy)
     train_loader = DataLoader(train_dataset, batch_size=training_bs, shuffle=True, collate_fn=padding_fn)
     val_loader   = DataLoader(validation_dataset, batch_size=val_bs, shuffle=True, collate_fn=padding_fn)
     test_loader  = DataLoader(test_dataset, batch_size=val_bs, shuffle=True, collate_fn=padding_fn)

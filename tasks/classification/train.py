@@ -39,7 +39,6 @@ def main():
     optimizer=optimizer,
     metric_names=config["metric_config"]["metrics"]
   )
-
   trainer.train()
 
 if __name__ == "__main__":
