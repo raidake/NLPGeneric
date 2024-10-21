@@ -32,8 +32,9 @@ class RNNLayer(nn.Module):
     return torch.zeros(batch_size, self.dim_hidden)
 
 class RNN(nn.Module):
-  def __init__(self, dim_input, dim_hidden, dim_output):
+  def __init__(self, vocab_size, dim_input, dim_hidden, dim_output):
     super(RNN, self).__init__()
+    self.token_embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=dim_input)
     self.dim_input = dim_input
     self.dim_hidden = dim_hidden
     self.dim_output = dim_output
@@ -41,9 +42,16 @@ class RNN(nn.Module):
     self.rnn_layer = RNNLayer(dim_input, dim_hidden, dim_output)
     self.softmax = nn.LogSoftmax(dim=-1)
   
+  def initialize(self):
+    for p in self.parameters():
+      if p.dim() > 1:
+        nn.init.xavier_uniform_(p)
+  
   def forward(self, input):
     hidden = self.rnn_layer.init_hidden(input.size()[0])
-    outputs = self.rnn_layer(input, hidden)
+    input["ids"] = input["ids"].long()
+    embedded = self.token_embedding(input["ids"])
+    outputs = self.rnn_layer(embedded, hidden)
     outputs = self.softmax(outputs)
     return outputs
 

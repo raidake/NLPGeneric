@@ -6,7 +6,7 @@ import argparse
 from typing import List, Dict, Tuple, Union
 from collections import defaultdict, Counter
 
-from base_tokenizer import BaseTokenizer
+from .base_tokenizer import BaseTokenizer
 
 class BPETokenizer(BaseTokenizer):
   def __init__(
@@ -26,6 +26,8 @@ class BPETokenizer(BaseTokenizer):
     self.vocab = set(vocab_list)
     self.vocab_ids = {v: i for i, v in enumerate(self.vocab_list)}
     self.BPE = Counter()
+    if "<pad>" in self.vocab:
+      self.pad_id = self.vocab_ids["<pad>"]
   
   @classmethod
   def from_pretrained(cls, folder_path: str):
@@ -133,6 +135,7 @@ class BPETokenizer(BaseTokenizer):
         continue
       else:
         self.vocab_ids[v] = len(self.vocab_ids)
+    self.pad_id = self.vocab_ids["<pad>"]
 
   def tokenize(self, text: str) -> Dict[str, Union[List[str], List[int]]]:
     tokenized_words = []
@@ -178,3 +181,4 @@ if __name__ == "__main__":
     tokenizer.save(cache_folder + corpus_name)
     # save config to cache
   print(tokenizer.tokenize(args.input.lower()))
+  print(tokenizer.pad_id)

@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from models import build_model
 from utils.tokenizer import build_tokenizer
 from trainer import Trainer, TrainingArgs
-from dataloader import get_loaders
+from dataloader import get_dataloaders
 
 def main():
   argparser = argparse.ArgumentParser()
@@ -25,9 +25,9 @@ def main():
   model = build_model(config["model_config"])
   tokenizer = build_tokenizer(config["tokenizer_config"])
   optimizer = torch.optim.Adam(model.parameters(), lr=training_args.learning_rate)
-  train_loader, val_loader, test_loader = get_loaders(
+  train_loader, val_loader, test_loader = get_dataloaders(
     tokenizer=tokenizer, 
-    dataset=config["dataset"], 
+    dataset_args=config["data_config"], 
     training_args=training_args
   )
   

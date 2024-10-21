@@ -1,7 +1,8 @@
 {
     "model_config": {
-        "model_type": "WordRNN",
+        "model_type": "RNN",
         "args" : {
+            "vocab_size": 30000,
             "dim_input": 64,
             "dim_hidden": 128,
             "dim_output": 2
@@ -15,10 +16,11 @@
     },
     "trainer_args": {
         "task": "classification",
-        "batch_size": 32,
+        "training_batch_size": 32,
+        "validation_batch_size": 32,
         "training_steps": 1000,
         "metric_log_interval": 1,
-        "eval_interval": 1,
+        "eval_interval": 100,
         "learning_rate": 0.001
     }, 
     "metric_config": {

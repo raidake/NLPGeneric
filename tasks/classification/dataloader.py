@@ -15,10 +15,6 @@ from trainer import TrainingArgs
 
 SUPPORTED_TASKS = ["classification"]
 
-def pad_collate(batch),:
-  (xx, yy) = zip(*batch)
-  xx_pad = pad_sequence(xx, batch_first=True, padding_value=0)
-  return xx_pad, torch.tensor(yy)
 class ClassificationDataset(torch.utils.data.Dataset):
   def __init__(self, dataset, tokenizer):
     self.dataset = dataset
@@ -31,26 +27,29 @@ class ClassificationDataset(torch.utils.data.Dataset):
     item = self.dataset[idx]
     text = item["text"]
     label = item["label"]
-    return self.tokenizer(text), label
+    tokenized = self.tokenizer(text)
+    length = len(tokenized)
+    return tokenized, length, label
 
 def get_dataloaders(
   tokenizer: BaseTokenizer,
   dataset_args: Dict,
-  training_args: Dict
+  training_args: TrainingArgs
 ):
-  assert dataset_args["task"] in SUPPORTED_TASKS, f"Task {dataset_args['task']} not supported"
-  assert "batch_size" in training_args, "Batch size not found in training args"
+  assert training_args.task in SUPPORTED_TASKS, f"Task {training_args.task} not supported"
+  assert hasattr(training_args, "training_batch_size"), "Batch size not found in training args"
   assert "is_huggingface" in dataset_args, "is_huggingface not found in dataset args"
   assert "name" in dataset_args, "Dataset name not found in dataset args"
   
-  bs = training_args["batch_size"]
+  training_bs = training_args.training_batch_size
+  val_bs = training_args.validation_batch_size
   if dataset_args["is_huggingface"]:
     dataset = load_dataset(dataset_args["name"])
   else:
     assert "path" in dataset_args, "Path not found in dataset args"
     dataset = load_dataset(dataset_args["path"])
   
-  if dataset_args["task"] == "classification":
+  if training_args.task == "classification":
     train_dataset = ClassificationDataset(dataset["train"], tokenizer)
     validation_dataset = ClassificationDataset(dataset["validation"], tokenizer)
     test_dataset = ClassificationDataset(dataset["test"], tokenizer)
@@ -59,11 +58,11 @@ def get_dataloaders(
       (xx, yy) = zip(*batch)
       xx_pad = pad_sequence(xx, batch_first=True, padding_value=tokenizer.pad_id)
       return xx_pad, torch
-    train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
-    val_loader   = DataLoader(validation_dataset, batch_size=bs, shuffle=True, collate_fn=pad_collate)
-    test_loader  = DataLoader(test_dataset, batch_size=bs, shuffle=True, collate_fn=pad_collate)
+    train_loader = DataLoader(train_dataset, batch_size=training_bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
+    val_loader   = DataLoader(validation_dataset, batch_size=val_bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
+    test_loader  = DataLoader(test_dataset, batch_size=val_bs, shuffle=True, collate_fn=partial(padding_fn, tokenizer=tokenizer))
   else:
-    raise NotImplementedError(f"Task {dataset_args['task']} not implemented")
+    raise NotImplementedError(f"Task {training_args.task} not implemented")
   
   return train_loader, val_loader, test_loader
 
