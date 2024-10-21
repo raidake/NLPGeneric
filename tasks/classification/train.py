@@ -36,7 +36,8 @@ def main():
     training_args=training_args, 
     train_loader=train_loader,
     val_loader=val_loader,
-    optimizer=optimizer
+    optimizer=optimizer,
+    metric_names=config["metric_config"]["metrics"]
   )
 
   trainer.train()

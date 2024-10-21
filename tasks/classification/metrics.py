@@ -21,6 +21,10 @@ class Accuracy(BaseMetric):
     
     def value(self):
         return self.correct / self.total
+    
+    @staticmethod
+    def from_config(cfg):
+        return Accuracy(**cfg)
 
 class F1(BaseMetric):
     def __init__(self):
@@ -41,8 +45,12 @@ class F1(BaseMetric):
         precision = self.tp / (self.tp + self.fp)
         recall = self.tp / (self.tp + self.fn)
         return 2 * precision * recall / (precision + recall)
+    
+    @staticmethod
+    def from_config(cfg):
+        return F1(**cfg)
 
-def Precision(BaseMetric):
+class Precision(BaseMetric):
     def __init__(self):
         super().__init__()
         self.tp = 0
@@ -56,7 +64,11 @@ def Precision(BaseMetric):
     def value(self):
         return self.tp / (self.tp + self.fp)
     
-def Recall(BaseMetric):
+    @staticmethod
+    def from_config(cfg):
+        return Precision(**cfg)
+    
+class Recall(BaseMetric):
     def __init__(self):
         super().__init__()
         self.tp = 0
@@ -69,6 +81,10 @@ def Recall(BaseMetric):
     
     def value(self):
         return self.tp / (self.tp + self.fn)
+    
+    @staticmethod
+    def from_config(cfg):
+        return Recall(**cfg)
 
 MODULE_NAME = {
     "accuracy": Accuracy,
@@ -78,10 +94,13 @@ MODULE_NAME = {
 }
 
 
-def build(metric_name):
+def build(metric_name, cfg):
     if metric_name not in SUPPORTED_METRICS:
         raise ValueError(f"Unsupported metric: {metric_name}")
-    return MODULE_NAME[metric_name]()
+    print(f"Building metric: {metric_name}")
+    module = MODULE_NAME[metric_name]
+    print(f"Module: {module}")
+    return module.from_config(cfg)
 
 __all__ = [
     "build",

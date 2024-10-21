@@ -6,7 +6,7 @@ import torch.utils
 import torch.nn.functional as F
 import torch.nn as nn
 
-from metrics import __all__ as metrics
+import metrics
 
 SUPPORTED_TASKS = ["classification", "causal"]
 
@@ -84,7 +84,7 @@ class Trainer:
     self.metric_names = metric_names
   
   def get_metrics_dict(self):
-    return {metric_name: metrics.build(metric_name) for metric_name in self.metric_names}
+    return {metric["name"]: metrics.build(metric["name"], metric["args"]) for metric in self.metric_names}
 
   def eval_step(self, input, length, label):
     with torch.no_grad():
@@ -125,6 +125,7 @@ class Trainer:
   def train(self):
     self.model.train()
     data_metrics_dict = self.get_metrics_dict()
+    data_iter = iter(self.train_loader)
     for step_id in tqdm.tqdm(range(self.args.training_steps)):
       try:
         input, label = next(data_iter)

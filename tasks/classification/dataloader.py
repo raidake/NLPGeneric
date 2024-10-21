@@ -27,7 +27,7 @@ class ClassificationDataset(torch.utils.data.Dataset):
     item = self.dataset[idx]
     text = item["text"]
     label = item["label"]
-    tokenized = self.tokenizer(text)
+    tokenized = self.tokenizer.tokenize(text)
     length = len(tokenized)
     return tokenized, length, label
 
