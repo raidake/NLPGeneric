@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from datasets import load_dataset
 from models.rnn import RNN
 from models.lstm import LSTM
 from models.uni_deep_rnn import UniDeepRNN
@@ -15,6 +16,7 @@ def pad_collate(batch):
   (xx, yy) = zip(*batch)
   xx_pad = pad_sequence(xx, batch_first=True, padding_value=0)
   return xx_pad, torch.tensor(yy)
+
 class TrainingArgs:
   def __init__(self, learning_rate: float, num_epochs: int):
     self.learning_rate = learning_rate
