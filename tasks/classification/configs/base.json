@@ -31,8 +31,8 @@
     },
     "data_config": {
         "name": "rotten_tomatoes",
-        "is_huggingface": false,
-        "data_path": "data/rotten_tomatoes"
+        "is_huggingface": true,
+        "type": "classification"
     },
     "analysis_config": {
 

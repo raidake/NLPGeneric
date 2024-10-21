@@ -1,7 +1,6 @@
 import os
-from typing import Dict, Union, List
 import json
-
+from typing import Dict, Union, List
 class BaseTokenizer:
   @classmethod
   def from_pretrained(cls, folder_path: str):

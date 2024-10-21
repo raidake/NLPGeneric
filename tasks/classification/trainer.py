@@ -9,6 +9,24 @@ from classification.metrics import __all__ as metrics
 
 SUPPORTED_TASKS = ["classification", "causal"]
 
+class BaseLossFunction(nn.Module):
+  def __init__(self):
+    super(BaseLossFunction, self).__init__()
+
+  def forward(self, input, output, label):
+    raise NotImplementedError("forward method should be implemented")
+
+class ClassificationLossFunction(BaseLossFunction):
+  def __init__(self, tokenizer):
+    super(ClassificationLossFunction, self).__init__()
+    self.tokenizer = tokenizer
+
+  def forward(self, input, output, label):
+    # input : (batch_size, seq_len), output : (batch_size, seq_len, num_classes), label : (batch_size)
+    # get the (batch_size) tensor of positions that is different from padding token
+    pad_id = self.tokenizer.pad_id
+    return F.cross_entropy(output, label)
+
 class TrainingArgs:
   def __init__(
       self, 
@@ -47,14 +65,13 @@ class Trainer:
       val_loader: torch.utils.data.DataLoader,
       optimizer: torch.optim.Optimizer,
       metric_names: list[str],
-      loss_fn
     ):
     self.args = training_args
     self.model = model
     self.train_loader = train_loader
     self.val_loader = val_loader
     self.optimizer = optimizer
-    self.loss_fn = loss_fn
+    self.loss_fn = get_loss_fn(self.args.task)
     self.metric_names = metric_names
   
   def get_metrics_dict(self):
@@ -65,7 +82,7 @@ class Trainer:
       output = self.model(input)
     # outputs : (batch_size, seq_len, num_classes)
     # result : (batch_size, num_classes)
-    loss = self.loss_fn(output, label)
+    loss = self.loss_fn(input, output, label)
     return output, loss.item()
 
   def eval(self):
@@ -89,7 +106,7 @@ class Trainer:
   def train_step(self, input, label):
     self.optimizer.zero_grad()
     output = self.model(input)
-    loss = self.loss_fn(output, label)
+    loss = self.loss_fn(input, output, label)
     loss.backward()
     self.optimizer.step()
     return output, loss.item()

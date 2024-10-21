@@ -6,7 +6,7 @@ import argparse
 from typing import List, Dict, Tuple, Union
 from collections import defaultdict, Counter
 
-from tasks.classification.utils.tokenizer.base import BaseTokenizer
+from base_tokenizer import BaseTokenizer
 
 class BPETokenizer(BaseTokenizer):
   def __init__(
@@ -14,7 +14,7 @@ class BPETokenizer(BaseTokenizer):
       name,
       max_num_vocab: int, 
       word_2_edit: Dict[str, List[str]] = defaultdict(list),
-      vocab: set = set(['<UNK>']),
+      vocab_list: List[str] = ["<UNK>"]
     ): 
     """Initialize either from pretrained or from scratch"""
     self.name = name
@@ -22,9 +22,14 @@ class BPETokenizer(BaseTokenizer):
     self.word_2_edit = word_2_edit
     
     self.word_freq = Counter()
-    self.vocab = vocab
-    self.vocab_ids = {v: i for i, v in enumerate(self.vocab)}
+    self.vocab_list = vocab_list
+    self.vocab = set(vocab_list)
+    self.vocab_ids = {v: i for i, v in enumerate(self.vocab_list)}
     self.BPE = Counter()
+    if "<PAD>" not in self.vocab:
+      self.vocab.add("<PAD>")
+      self.vocab_list.append("<PAD>")
+      self.vocab_ids["<PAD>"] = len(self.vocab_ids)
   
   @classmethod
   def from_pretrained(cls, folder_path: str):
@@ -51,7 +56,7 @@ class BPETokenizer(BaseTokenizer):
     config_file = folder_path + "/config.json"
     state_dict["max_num_vocab"] = self.max_num_vocab
     state_dict["word_2_edit"] = self.word_2_edit
-    state_dict["vocab"] = list(self.vocab)
+    state_dict["vocab_list"] = list(self.vocab)
     with open(state_file, "w") as f:
       json.dump(state_dict, f)
     with open(config_file, "w") as f:
@@ -126,6 +131,10 @@ class BPETokenizer(BaseTokenizer):
         continue
       else:
         self.vocab_ids[v] = len(self.vocab_ids)
+    
+    if "<PAD>" not in self.vocab:
+      self.vocab.add("<PAD>")
+      self.vocab_ids["<PAD>"] = len(self.vocab_ids)
 
   def tokenize(self, text: str) -> Dict[str, Union[List[str], List[int]]]:
     tokenized_words = []

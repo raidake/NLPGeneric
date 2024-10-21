@@ -8,9 +8,8 @@ import torch.nn.functional as F
 
 from models import build_model
 from utils.tokenizer import build_tokenizer
-
 from trainer import Trainer, TrainingArgs
-
+from dataloader import get_loaders
 
 def main():
   argparser = argparse.ArgumentParser()
@@ -25,23 +24,19 @@ def main():
   )
   model = build_model(config["model_config"])
   tokenizer = build_tokenizer(config["tokenizer_config"])
-
-
+  optimizer = torch.optim.Adam(model.parameters(), lr=training_args.learning_rate)
+  train_loader, val_loader, test_loader = get_loaders(
+    tokenizer=tokenizer, 
+    dataset=config["dataset"], 
+    training_args=training_args
+  )
   
-  for bs in train_loader:
-    print(bs)
-    break
-
-  model = RNN(len(all_letters), 32, len(all_categories))
-  # model = LSTM(len(all_letters), 128, len(all_categories))
-  # model = UniDeepRNN(len(all_letters), 128, len(all_categories), num_layers=4)
-  # model = BiDeepRNN(len(all_letters), 128, len(all_categories), num_layers=4)
-  model.to(device)
   trainer = Trainer(
     model=model, 
     training_args=training_args, 
     train_loader=train_loader,
-    val_loader=val_loader
+    val_loader=val_loader,
+    optimizer=optimizer
   )
 
   trainer.train()
