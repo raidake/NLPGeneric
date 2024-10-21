@@ -26,10 +26,6 @@ class BPETokenizer(BaseTokenizer):
     self.vocab = set(vocab_list)
     self.vocab_ids = {v: i for i, v in enumerate(self.vocab_list)}
     self.BPE = Counter()
-    if "<PAD>" not in self.vocab:
-      self.vocab.add("<PAD>")
-      self.vocab_list.append("<PAD>")
-      self.vocab_ids["<PAD>"] = len(self.vocab_ids)
   
   @classmethod
   def from_pretrained(cls, folder_path: str):
@@ -56,7 +52,7 @@ class BPETokenizer(BaseTokenizer):
     config_file = folder_path + "/config.json"
     state_dict["max_num_vocab"] = self.max_num_vocab
     state_dict["word_2_edit"] = self.word_2_edit
-    state_dict["vocab_list"] = list(self.vocab)
+    state_dict["vocab_list"] = self.vocab_list
     with open(state_file, "w") as f:
       json.dump(state_dict, f)
     with open(config_file, "w") as f:
@@ -100,7 +96,7 @@ class BPETokenizer(BaseTokenizer):
     line = self.clean_line(line)
     for word in line.split(" "):
       if not word in self.word_2_edit.keys():
-        self.word_2_edit[word] = list(word) + list('_')
+        self.word_2_edit[word] = list(word)
       self.word_freq[word] += 1
     self.vocab.update(set(list(line))) # list of characters
 
@@ -122,19 +118,21 @@ class BPETokenizer(BaseTokenizer):
         print("No more merge, stopping early, the size of vocab is: ", len(self.vocab))
         break
       for word, edit in self.word_2_edit.items():
-        if next_merge in word + '_':
+        if next_merge in word:
           self.word_2_edit[word] = self.merge_edit(edit, target=next_merge)
       self.vocab.add(next_merge)
       # make sure this loop is not infinite
-    for v in self.vocab:
+    
+    if "<pad>" not in self.vocab:
+      self.vocab.add("<pad>")
+      self.word_2_edit["<pad>"] = ["<pad>"]
+    
+    self.vocab_list = list(self.vocab)
+    for v in self.vocab_list:
       if v in self.vocab_ids:
         continue
       else:
         self.vocab_ids[v] = len(self.vocab_ids)
-    
-    if "<PAD>" not in self.vocab:
-      self.vocab.add("<PAD>")
-      self.vocab_ids["<PAD>"] = len(self.vocab_ids)
 
   def tokenize(self, text: str) -> Dict[str, Union[List[str], List[int]]]:
     tokenized_words = []
