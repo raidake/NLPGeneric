@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 import metrics
+from metrics import beautify
 
 SUPPORTED_TASKS = ["classification", "causal"]
 
@@ -98,24 +99,23 @@ class Trainer:
     eval_metrics_dict = self.get_metrics_dict()
     for input, length, label in self.val_loader:
       output, loss = self.eval_step(input, length, label)
-      val_loss.append(loss.item()/input.size()[0])
-      eval_metrics_dict = {
-        metric_name: metric.update(output, label) for metric_name, metric in eval_metrics_dict.items()
-      }
-    eval_metrics = {
-      metric_name: metric.value() for metric_name, metric in eval_metrics.items()
+      val_loss.append(loss/input.size()[0])
+      for metric_name, metric in eval_metrics_dict.items():
+        metric.update(output, label)
+    
+    result_metrics = {
+      metric_name: metric.value() for metric_name, metric in eval_metrics_dict.items()
     }
     print(
       f"""Validating result:
-        Validation Loss: {val_loss / len(val_loss)},
-        Metrics: {eval_metrics}"""
+        Validation Loss: {sum(val_loss) / len(val_loss)},
+        Metrics: {beautify(result_metrics)}"""
     )
   
   def train_step(self, input, length, label):
     self.optimizer.zero_grad()
     output = self.model(input) # output : (batch_size, seq_len, num_classes)
     output = output[range(input.size()[0]), length - 1]
-    print(output.size(), label.size())
     loss = self.loss_fn(output, label)
     loss.backward()
     self.optimizer.step()
@@ -123,7 +123,9 @@ class Trainer:
 
   def train(self):
     self.model.train()
+    train_loss = 0
     data_metrics_dict = self.get_metrics_dict()
+    print("Data Metrics: ", data_metrics_dict)
     data_iter = iter(self.train_loader)
     for step_id in tqdm.tqdm(range(self.args.training_steps)):
       try:
@@ -136,16 +138,15 @@ class Trainer:
       train_loss += loss
       
       if (step_id + 1) % self.args.metric_log_interval == 0:
-        data_metrics_dict = {
-          metric_name: metric.update(output, label) for metric_name, metric in data_metrics_dict.items()
-        }
+        for metric_name, metric in data_metrics_dict.items():
+          metric.update(output, label)
         result_metrics = {
           metric_name: metric.value() for metric_name, metric in data_metrics_dict.items()
         }
         print(
           f"""Step {step_id + 1}:
-            Train Loss: {train_loss / ((step_id + 1) * self.args.training_batch_size) },\n 
-            Metrics: {result_metrics}"""
+            Train Loss: {train_loss / ((step_id + 1) * self.args.training_batch_size) },
+            Metrics:{beautify(result_metrics)}"""
         )
       
       if (step_id + 1) % self.args.eval_interval == 0:

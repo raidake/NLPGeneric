@@ -18,8 +18,8 @@
         "task": "classification",
         "training_batch_size": 32,
         "validation_batch_size": 32,
-        "training_steps": 1000,
-        "metric_log_interval": 1,
+        "training_steps": 10000,
+        "metric_log_interval": 2000,
         "eval_interval": 100,
         "learning_rate": 0.001
     }, 

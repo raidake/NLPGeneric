@@ -42,8 +42,16 @@ class F1(BaseMetric):
         self.fn += ((pred == 0) & (label == 1)).sum().item()
     
     def value(self):
-        precision = self.tp / (self.tp + self.fp)
-        recall = self.tp / (self.tp + self.fn)
+        if self.tp + self.fp == 0:
+            precision = 0
+        else:
+            precision = self.tp / (self.tp + self.fp)
+        if self.tp + self.fn == 0:
+            recall = 0
+        else:
+            recall = self.tp / (self.tp + self.fn)
+        if precision + recall == 0:
+            return 0
         return 2 * precision * recall / (precision + recall)
     
     @staticmethod
@@ -62,6 +70,8 @@ class Precision(BaseMetric):
         self.fp += ((pred == 1) & (label == 0)).sum().item()
     
     def value(self):
+        if self.tp + self.fp == 0:
+            return 0
         return self.tp / (self.tp + self.fp)
     
     @staticmethod
@@ -80,6 +90,8 @@ class Recall(BaseMetric):
         self.fn += ((pred == 0) & (label == 1)).sum().item()
     
     def value(self):
+        if self.tp + self.fn == 0:
+            return 0
         return self.tp / (self.tp + self.fn)
     
     @staticmethod
@@ -92,6 +104,9 @@ MODULE_NAME = {
     "precision": Precision,
     "recall": Recall
 }
+
+def beautify(metrics_dict):
+    return "\n ".join([f"{k}: {v}" for k, v in metrics_dict.items()])
 
 
 def build(metric_name, cfg):
