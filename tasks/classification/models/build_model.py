@@ -20,4 +20,8 @@ def build_model(config: Dict)-> nn.Module:
     model_type = config["model_type"]
     if model_type not in MODULE_MAP:
         raise Exception(f"model_type {model_type} not found in MODULE_MAP")
+    if "embedding_matrix" in config["args"]:
+        import numpy as np
+        embedding_matrix = np.load(config["args"]["embedding_matrix"])
+        config["args"]["pretrained_embeddings"] = embedding_matrix  # Pass to model
     return MODULE_MAP[model_type](**config["args"])

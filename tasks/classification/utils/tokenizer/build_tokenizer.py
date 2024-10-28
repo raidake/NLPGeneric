@@ -1,7 +1,8 @@
 from .BPE import BPETokenizer
-
+from .NLTK import NLTKTokenizer
 SUPPORTED_TOKENIZERS = {
-    "bpe": BPETokenizer
+    "bpe": BPETokenizer,
+    "nltk": NLTKTokenizer
 }
 
 def build_tokenizer(args):

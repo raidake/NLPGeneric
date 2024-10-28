@@ -22,15 +22,18 @@ def main():
   training_args = TrainingArgs(
     **config["trainer_args"]
   )
-  model = build_model(config["model_config"])
+
   tokenizer = build_tokenizer(config["tokenizer_config"])
+
+  model = build_model(config["model_config"])
+  
   optimizer = torch.optim.Adam(model.parameters(), lr=training_args.learning_rate)
   train_loader, val_loader, test_loader = get_dataloaders(
     tokenizer=tokenizer, 
     dataset_args=config["data_config"], 
     training_args=training_args
   )
-  
+  print("Before Trainer")
   trainer = Trainer(
     model=model, 
     training_args=training_args, 

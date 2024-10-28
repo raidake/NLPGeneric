@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -7,7 +8,7 @@ class RNNLayer(nn.Module):
     super(RNNLayer, self).__init__()
     self.dim_input = dim_input
     self.dim_hidden = dim_hidden
-
+    
     self.i2h = nn.Linear(dim_input + dim_hidden, dim_hidden)
     self.i2o = nn.Linear(dim_input + dim_hidden, dim_output)
     self.direction = direction
@@ -32,9 +33,19 @@ class RNNLayer(nn.Module):
     return torch.zeros(batch_size, self.dim_hidden)
 
 class RNN(nn.Module):
-  def __init__(self, vocab_size, dim_input, dim_hidden, dim_output):
+  def __init__(self, vocab_size, dim_input, dim_hidden, dim_output,pretrained_embeddings=None, freeze_embeddings=True):
     super(RNN, self).__init__()
-    self.token_embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=dim_input)
+
+    if pretrained_embeddings is not None:
+      print("Loading pretrained word embeddings")
+      embedded_matrix = np.load("utils/tokenizer/cache/" + pretrained_embeddings)
+      self.token_embedding = nn.Embedding.from_pretrained(
+          torch.tensor(embedded_matrix, dtype=torch.float),
+          freeze=freeze_embeddings
+      )
+    else:
+      self.token_embedding = nn.Embedding(vocab_size, dim_input)
+
     self.dim_input = dim_input
     self.dim_hidden = dim_hidden
     self.dim_output = dim_output
