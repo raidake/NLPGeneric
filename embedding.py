@@ -42,6 +42,7 @@ oov_count_word2vec = len(oov_words_word2vec)
 
 print(f"Number of OOV words: {oov_count_word2vec}")
 print("Some OOV words:", oov_words_word2vec[:10])
+np.save('embedding_original.npy')
 
 # Replace OOV
 
