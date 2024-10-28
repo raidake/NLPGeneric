@@ -8,9 +8,9 @@ nltk.download('punkt')
 
 class NLTKTokenizer:
     def __init__(self, config=None):
-        self.vocab = {"<UNK>": 0, "<pad>": 1}
+        self.vocab = {}
         self.config = config or {}
-        self.pad_id = self.vocab["<pad>"]  # Store pad_id for future use
+        self.pad_id = self.vocab["pad"]  # Store pad_id for future use
 
     @classmethod
     def from_pretrained(cls, pretrained_path):
@@ -23,7 +23,7 @@ class NLTKTokenizer:
             vocab = json.load(f)
         tokenizer = cls()
         tokenizer.vocab = vocab
-        tokenizer.pad_id = vocab.get("<pad>", 1)  # Ensure pad_id is set
+        tokenizer.pad_id = vocab.get("PAD", 1)  # Ensure pad_id is set
         return tokenizer
 
     def build_vocab(self):
@@ -43,7 +43,10 @@ class NLTKTokenizer:
     def tokenize(self, text):
         """Tokenize a given text using NLTK."""
         tokens = word_tokenize(text.lower())  # Tokenize the text into words
-        token_ids = [self.vocab.get(token, self.vocab["<UNK>"]) for token in tokens]  # Get token IDs
+        token_ids = [self.vocab.get(token, self.vocab["UNK"]) for token in tokens]  # Get token IDs
+        
+        # token_ids = [self.vocab.get(token, np.zeros_like(self.vocab['UNK'])) for token in tokens]  # Get token IDs
+
         return {"tokens": tokens, "ids": token_ids}
     
     def save(self, folder_path):
