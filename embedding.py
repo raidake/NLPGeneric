@@ -34,7 +34,7 @@ print(f"Vocabulary Size: {vocab_size}")
 print("Most common words in the dataset:", vocab.most_common(10))
 
 # Load pre-trained Word2Vec model
-word2vec_model = api.load('word2vec-google-news-300')
+word2vec_model = api.load('glove-wiki-gigaword-100')
 
 # Check OOV words (words in training data but not in the pre-trained embeddings)
 oov_words_word2vec = [word for word in vocab if word not in word2vec_model]
@@ -42,14 +42,17 @@ oov_count_word2vec = len(oov_words_word2vec)
 
 print(f"Number of OOV words: {oov_count_word2vec}")
 print("Some OOV words:", oov_words_word2vec[:10])
-np.save('embedding_original.npy')
 
 # Replace OOV
 
 fasttext.util.download_model('en', if_exists='ignore')  # Downloads 'cc.en.300.bin'
 fasttext_model = fasttext.load_model('cc.en.300.bin')
+print(fasttext_model.dimension)
+fasttext.util.reduce_model(fasttext_model, 100)
+print(fasttext_model.dimension)
 
-embedding_dim = 300 # match input dimension of layer, dimension 300 because fasttext model default is 300 dimensions
+
+embedding_dim = 100 # match input dimension of layer, dimension 300 because fasttext model default is 300 dimensions
 embedding_matrix = np.zeros((vocab_size + 1, embedding_dim))
 
 word_index = {word: idx + 1 for idx, (word, _) in enumerate(vocab.items())}

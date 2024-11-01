@@ -56,7 +56,7 @@ class DeepRNN(nn.Module):
 
 class BiDeepRNN(nn.Module):
   def __init__(self, dim_input, dim_hidden, dim_output, num_layers):
-    super(BiRNN, self).__init__()
+    super(BiDeepRNN, self).__init__()
     self.dim_input = dim_input
     self.dim_hidden = dim_hidden
     self.dim_output = dim_output
